@@ -25,10 +25,11 @@ namespace DirtyHttpServer
                 Console.WriteLine($"Elapsed: {elapsed}");
             });
 
-            app.MapRoute(HttpMethods.GET, "/hello", (context) =>
+            app.MapRoute(HttpMethods.POST, "/hello", (context) =>
             {
                 context.Response.StatusCode = 200;
-                context.Response.Body = "Hello World!";
+                context.Response.Headers["content-type"] = "application/json";
+                context.Response.Body = "{ \"message\": \"Hello World\" }";
                 return Task.CompletedTask;
             });
 
