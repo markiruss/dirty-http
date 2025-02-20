@@ -25,11 +25,19 @@ namespace DirtyHttpServer
                 Console.WriteLine($"Elapsed: {elapsed}");
             });
 
-            app.MapRoute(HttpMethods.POST, "/hello", (context) =>
+            app.MapRoute(HttpMethods.GET, "/hello", (context) =>
             {
                 context.Response.StatusCode = 200;
                 context.Response.Headers["content-type"] = "application/json";
                 context.Response.Body = "{ \"message\": \"Hello World\" }";
+                return Task.CompletedTask;
+            });
+
+            app.MapRoute(HttpMethods.GET, "/mark", (context) =>
+            {
+                context.Response.StatusCode = 200;
+                context.Response.Headers["content-type"] = "application/json";
+                context.Response.Body = "{ \"message\": \"Hello Mark\" }";
                 return Task.CompletedTask;
             });
 
