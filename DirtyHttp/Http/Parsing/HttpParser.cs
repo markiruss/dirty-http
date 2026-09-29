@@ -68,9 +68,9 @@ internal class HttpParser
             // There is only 2 so it is the last index
             int indexOfSecondSpace = line.LastIndexOf(SpaceByte);
 
-            _currRequest.Path = Encoding.UTF8.GetString(line.Slice(indexOfFirstSpace + 1, indexOfSecondSpace - indexOfFirstSpace - 1));
+            _currRequest.Path = Encoding.ASCII.GetString(line.Slice(indexOfFirstSpace + 1, indexOfSecondSpace - indexOfFirstSpace - 1));
 
-            _currRequest.HttpVersion = Encoding.UTF8.GetString(line.Slice(indexOfSecondSpace + 1));
+            _currRequest.HttpVersion = Encoding.ASCII.GetString(line.Slice(indexOfSecondSpace + 1));
 
             // Advance the buffer
             buffer = buffer.Slice(indexOfLineEnd + 2);
@@ -116,7 +116,7 @@ internal class HttpParser
                     headerValue = headerValue.Slice(1);
                 }
 
-                _currRequest.Headers.Add(Encoding.UTF8.GetString(headerKey), Encoding.UTF8.GetString(headerValue));
+                _currRequest.Headers.Add(Encoding.ASCII.GetString(headerKey), Encoding.ASCII.GetString(headerValue));
 
                 // Advance the buffer
                 buffer = buffer.Slice(indexOfLineEnd + 2);
