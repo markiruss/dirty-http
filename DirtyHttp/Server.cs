@@ -10,16 +10,14 @@ namespace DirtyHttp;
 
 public class Server : BackgroundService
 {
-    TcpClientHandler _tcpHandler;
     DirtyHttpOptions _options;
     IServiceProvider _serviceProvider;
     ILogger<Server> _logger;
 
     public const string SUPPORTED_HTTP_VERSION = "HTTP/1.1";
 
-    public Server(TcpClientHandler tcpHandler, DirtyHttpOptions options, IServiceProvider serviceProvider, ILogger<Server> logger)
+    public Server(DirtyHttpOptions options, IServiceProvider serviceProvider, ILogger<Server> logger)
     {
-        _tcpHandler = tcpHandler;
         _options = options;
         _serviceProvider = serviceProvider;
         _logger = logger;
@@ -42,7 +40,7 @@ public class Server : BackgroundService
             {
                 using var scope = _serviceProvider.CreateScope();
                 var tcpHandler = scope.ServiceProvider.GetRequiredService<TcpClientHandler>();
-                await _tcpHandler.HandleClient(client, stoppingToken);
+                await tcpHandler.HandleClient(client, stoppingToken);
             }, stoppingToken);
         }
     }
