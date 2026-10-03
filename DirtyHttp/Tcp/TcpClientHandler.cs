@@ -28,11 +28,19 @@ public class TcpClientHandler
 
             while (true)
             {
-                DirtyHttpRequest request = await _reader.ReadHttpMessageAsync(stream, stoppingToken);
-                
-                DirtyHttpResponse response = await _requestHandler.InvokeAsync(request);
+                TcpReadResponse tcpRead = await _reader.ReadHttpMessageAsync(stream, stoppingToken);
+
+                if (tcpRead is { Status: TcpReadStatus.Success, HttpRequest: not null })
+                {
+                    DirtyHttpResponse response = await _requestHandler.InvokeAsync(tcpRead.HttpRequest);
                                 
-                await _writer.WriteHttpMessageAsync(response, stream, stoppingToken);
+                    await _writer.WriteHttpMessageAsync(response, stream, stoppingToken);    
+                }
+                else
+                {
+                    _logger.LogInformation("Network connection shut down");
+                    break;
+                }
             }
         }
         catch(Exception ex)

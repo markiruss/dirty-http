@@ -14,22 +14,31 @@ public class TcpHttpReader
     int _bufferOffset = 0;
     readonly HttpParser _parser = new();
 
-    public async Task<DirtyHttpRequest> ReadHttpMessageAsync(NetworkStream stream, CancellationToken stoppingToken)
+    public async Task<TcpReadResponse> ReadHttpMessageAsync(NetworkStream stream, CancellationToken stoppingToken)
     {
         _parser.Clear();
         while (true)
         {
-            int bytesRead = await stream.ReadAsync(_Buffer, _bufferOffset, _Buffer.Length - _bufferOffset, stoppingToken);      
+            int bytesRead = await stream.ReadAsync(_Buffer, _bufferOffset, _Buffer.Length - _bufferOffset, stoppingToken);
 
-            var response = _parser.ParseChunk(_Buffer.AsSpan(0, bytesRead + _bufferOffset));
-            switch (response.Status)
+            if (bytesRead == 0)
+            {
+                // Peer socket shutdown
+                return new TcpReadResponse
+                {
+                    Status = TcpReadStatus.SocketClosed
+                };
+            }
+            
+            var httpResponse = _parser.ParseChunk(_Buffer.AsSpan(0, bytesRead + _bufferOffset));
+            switch (httpResponse.Status)
             {
                 case ParsingStatus.FirstLine:
                 case ParsingStatus.Headers:
                 case ParsingStatus.Body:
                     // Add the leftover to the buffer and let it loop again
-                    response.LeftOver.CopyTo(_Buffer);                    
-                    _bufferOffset = response.LeftOver.Length;
+                    httpResponse.LeftOver.CopyTo(_Buffer);                    
+                    _bufferOffset = httpResponse.LeftOver.Length;
                     break;
 
                 case ParsingStatus.Error:                    
@@ -37,9 +46,13 @@ public class TcpHttpReader
 
                 case ParsingStatus.Complete:
                     // Add the leftover to the buffer and return the response
-                    response.LeftOver.CopyTo(_Buffer);
-                    _bufferOffset = response.LeftOver.Length;                    
-                    return response.Request;
+                    httpResponse.LeftOver.CopyTo(_Buffer);
+                    _bufferOffset = httpResponse.LeftOver.Length;
+                    return new TcpReadResponse
+                    {
+                        HttpRequest = httpResponse.Request,
+                        Status = TcpReadStatus.Success
+                    };
             }
         }
     }
