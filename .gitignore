@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # Jetbrains
 .idea/
+
+# Claude Code
+.claude/worktrees/
