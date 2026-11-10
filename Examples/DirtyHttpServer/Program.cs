@@ -3,45 +3,44 @@ using DirtyHttp.Http;
 using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 
-namespace DirtyHttpServer
+namespace DirtyHttpServer;
+
+internal class Program
 {
-    internal class Program
+    static async Task Main(string[] args)
     {
-        static async Task Main(string[] args)
+        var host = Host.CreateDefaultBuilder();
+        host.ConfigureServices((services) => services.AddDirtyHttpServer(new()
         {
-            var host = Host.CreateDefaultBuilder();
-            host.ConfigureServices((services) => services.AddDirtyHttpServer(new()
-            {
-                Port = 8080
-            }));
-           
-            var app = host.Build();
+            Port = 8080
+        }));
 
-            app.Use(async (context, next) =>
-            {
-                var timestamp = Stopwatch.GetTimestamp();
-                await next(context);
-                var elapsed = Stopwatch.GetElapsedTime(timestamp);
-                Console.WriteLine($"Elapsed: {elapsed}");
-            });
+        var app = host.Build();
 
-            app.MapRoute(HttpMethods.GET, "/hello", (context) =>
-            {
-                context.Response.StatusCode = 200;
-                context.Response.Headers["content-type"] = "application/json";
-                context.Response.Body = "{ \"message\": \"Hello World\" }";
-                return Task.CompletedTask;
-            });
+        app.Use(async (context, next) =>
+        {
+            var timestamp = Stopwatch.GetTimestamp();
+            await next(context);
+            var elapsed = Stopwatch.GetElapsedTime(timestamp);
+            Console.WriteLine($"Elapsed: {elapsed}");
+        });
 
-            app.MapRoute(HttpMethods.GET, "/mark", (context) =>
-            {
-                context.Response.StatusCode = 200;
-                context.Response.Headers["content-type"] = "application/json";
-                context.Response.Body = "{ \"message\": \"Hello Mark\" }";
-                return Task.CompletedTask;
-            });
+        app.MapRoute(HttpMethods.GET, "/hello", (context) =>
+        {
+            context.Response.StatusCode = 200;
+            context.Response.Headers["content-type"] = "application/json";
+            context.Response.Body = "{ \"message\": \"Hello World\" }";
+            return Task.CompletedTask;
+        });
 
-            await app.RunAsync();
-        }
+        app.MapRoute(HttpMethods.GET, "/mark", (context) =>
+        {
+            context.Response.StatusCode = 200;
+            context.Response.Headers["content-type"] = "application/json";
+            context.Response.Body = "{ \"message\": \"Hello Mark\" }";
+            return Task.CompletedTask;
+        });
+
+        await app.RunAsync();
     }
 }
